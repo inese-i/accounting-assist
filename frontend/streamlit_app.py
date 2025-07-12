@@ -149,6 +149,20 @@ class AccountingAPI:
             self.logger.error(f"Error validating Bilanz: {e}")
             return {"success": False, "error": str(e)}
     
+    def get_structured_bilanz(self, period_end: str = None) -> Dict:
+        """Get structured hierarchical Bilanz (Balance Sheet)"""
+        try:
+            params = {}
+            if period_end:
+                params["period_end"] = period_end
+            
+            response = requests.get(f"{self.base_url}/api/v1/bilanz/structured", params=params)
+            response.raise_for_status()
+            return {"success": True, "data": response.json()}
+        except Exception as e:
+            self.logger.error(f"Error fetching structured Bilanz: {e}")
+            return {"success": False, "error": str(e)}
+
     def get_account_resolution(self, account_number: str) -> Dict:
         """Get how an account contributes to Bilanz"""
         try:
@@ -315,6 +329,13 @@ def show_account_details(account: Dict):
     """Display detailed information for an account, including Soll/Haben balances"""
     st.write(f"Account: {account['number']} - {account['name']}")
     st.write(f"**Type:** {account['account_type']}")
+    
+    # Display category information if available
+    if 'category' in account and account['category']:
+        st.write(f"**Category:** {account['category']}")
+    if 'category_name' in account and account['category_name']:
+        st.write(f"**Category Name:** {account['category_name']}")
+    
     st.write(f"**Soll Balance:** {format_currency(account['soll_balance'])}")
     st.write(f"**Haben Balance:** {format_currency(account['haben_balance'])}")
     st.write(f"**Net Balance:** {format_currency(account['soll_balance'] - account['haben_balance'])}")
@@ -403,6 +424,8 @@ def show_dashboard():
             "number": "Account #",
             "name": "Account Name",
             "account_type": "Type",
+            "category": "Category",
+            "category_name": "Category Name",
             "balance": "Balance",
             "is_active": "Active",
             "created_at": "Created"
@@ -1152,6 +1175,10 @@ def show_api_status_page():
         st.markdown("")
 
 def show_bilanz():
+    """Display the Bilanz (Balance Sheet) page - now uses structured view"""
+    show_structured_bilanz()
+
+def show_bilanz_old():
     """Display the Bilanz (Balance Sheet) page"""
 
     
@@ -1288,6 +1315,245 @@ def show_bilanz():
     
     # Display raw Bilanz data (optional)
     with st.expander("📊 Raw Bilanz Data"):
+        st.json(bilanz_data)
+
+def display_hierarchical_category(category_data: Dict, level: int = 0) -> float:
+    """
+    Recursively display a hierarchical category structure with expandable sections.
+    Returns the total amount for this category.
+    """
+    indent = "  " * level
+    category_name = category_data.get("name", "Unknown Category")
+    category_total = category_data.get("total", 0.0)
+    subcategories = category_data.get("subcategories", {})
+    accounts = category_data.get("accounts", [])
+    
+    # Create expandable section for categories with subcategories or accounts
+    if subcategories or accounts:
+        with st.expander(f"{indent}📁 {category_name} - {format_currency(category_total)}", expanded=(level < 2)):
+            # Display subcategories first
+            for subcat_name, subcat_data in subcategories.items():
+                display_hierarchical_category(subcat_data, level + 1)
+            
+            # Display accounts in this category
+            if accounts:
+                for account in accounts:
+                    balance = account.get("balance", 0.0)
+                    account_name = account.get("account_name", "Unknown Account")
+                    account_number = account.get("account_number", "")
+                    st.write(f"  • {account_name} ({account_number}): {format_currency(balance)}")
+    else:
+        # Simple category with no subcategories or accounts
+        st.write(f"{indent}📂 {category_name}: {format_currency(category_total)}")
+    
+    return category_total
+
+def show_structured_bilanz():
+    """Display the structured hierarchical Bilanz (Balance Sheet) page"""
+    
+    # Check API status
+    show_api_status()
+    
+    # Add option to toggle between old and new view
+    col1, col2, col3 = st.columns([2, 1, 1])
+    with col1:
+        period_end = st.date_input(
+            "Period End Date",
+            value=None,
+            help="Leave empty for current date"
+        )
+    
+    with col2:
+        view_type = st.selectbox(
+            "View Type",
+            ["Hierarchical (New)", "Classic (Old)"],
+            help="Choose between the new hierarchical view or classic flat view"
+        )
+    
+    with col3:
+        if st.button("🔄 Refresh Bilanz"):
+            st.info("💡 Use the main 'Refresh Data' button in the sidebar instead")
+    
+    # Convert date to string if provided
+    period_end_str = period_end.isoformat() if period_end else None
+    
+    if view_type == "Classic (Old)":
+        # Show the original Bilanz view
+        show_classic_bilanz(period_end_str)
+        return
+    
+    # Get structured Bilanz validation first
+    validation_result = api.validate_bilanz(period_end_str)
+    
+    if validation_result["success"]:
+        validation_data = validation_result["data"]
+        
+        # Display validation status
+        col1, col2, col3, col4 = st.columns(4)
+        
+        with col1:
+            st.metric("Aktiva Total", format_currency(validation_data["aktiva_total"]))
+        
+        with col2:
+            st.metric("Passiva Total", format_currency(validation_data["passiva_total"]))
+        
+        with col3:
+            balance_diff = validation_data["difference"]
+            st.metric("Difference", format_currency(balance_diff))
+        
+        with col4:
+            if validation_data["is_balanced"]:
+                st.success("✅ Balanced")
+            else:
+                st.error("❌ Not Balanced")
+    
+    # Get structured Bilanz
+    structured_result = api.get_structured_bilanz(period_end_str)
+    
+    if not structured_result["success"]:
+        st.error(f"Failed to fetch structured Bilanz: {structured_result['error']}")
+        # Fallback to classic view
+        st.warning("Falling back to classic Bilanz view...")
+        show_classic_bilanz(period_end_str)
+        return
+    
+    structured_data = structured_result["data"]
+    
+    # Display structured Bilanz in two columns
+    st.write("**🏛️ Hierarchical Balance Sheet Structure (HGB)**")
+    st.caption("🔍 Click on categories to expand/collapse and see details")
+    
+    col1, col2 = st.columns(2)
+    
+    # Aktiva (Assets) side
+    with col1:
+        st.markdown("### 📈 AKTIVA (Assets)")
+        
+        aktiva_data = structured_data.get("aktiva", {})
+        aktiva_categories = aktiva_data.get("categories", {})
+        
+        # Display each main category
+        for category_name, category_data in aktiva_categories.items():
+            display_hierarchical_category(category_data)
+        
+        # Total Aktiva
+        aktiva_total = aktiva_data.get("total", 0.0)
+        st.markdown("---")
+        st.markdown(f"### **TOTAL AKTIVA: {format_currency(aktiva_total)}**")
+    
+    # Passiva (Liabilities + Equity) side
+    with col2:
+        st.markdown("### 📉 PASSIVA (Liabilities + Equity)")
+        
+        passiva_data = structured_data.get("passiva", {})
+        passiva_categories = passiva_data.get("categories", {})
+        
+        # Display each main category
+        for category_name, category_data in passiva_categories.items():
+            display_hierarchical_category(category_data)
+        
+        # Total Passiva
+        passiva_total = passiva_data.get("total", 0.0)
+        st.markdown("---")
+        st.markdown(f"### **TOTAL PASSIVA: {format_currency(passiva_total)}**")
+    
+    # Account Resolution Section (unchanged)
+    st.write("**🔍 Account Resolution**")
+    st.write("See how individual accounts contribute to the Bilanz:")
+    
+    # Get all accounts for selection
+    accounts = api.get_accounts()
+    if accounts:
+        account_options = {f"{acc['number']} - {acc['name']}": acc['number'] for acc in accounts}
+        selected_account_display = st.selectbox("Select Account for Resolution", [""] + list(account_options.keys()))
+        
+        if selected_account_display:
+            selected_account_number = account_options[selected_account_display]
+            resolution_result = api.get_account_resolution(selected_account_number)
+            
+            if resolution_result["success"]:
+                resolution_data = resolution_result["data"]
+                
+                col1, col2 = st.columns(2)
+                
+                with col1:
+                    st.write(f"**Account:** {resolution_data['account_name']} ({resolution_data['account_number']})")
+                    st.write(f"**Type:** {resolution_data['account_type']}")
+                    st.write(f"**Category:** {resolution_data.get('category', 'Unknown')}")
+                    st.write(f"**Soll Balance:** {format_currency(resolution_data['soll_balance'])}")
+                    st.write(f"**Haben Balance:** {format_currency(resolution_data['haben_balance'])}")
+                
+                with col2:
+                    st.write(f"**Net Balance:** {format_currency(resolution_data['net_balance'])}")
+                    st.write(f"**Bilanz Side:** {resolution_data['bilanz_side'].title()}")
+                    st.write(f"**Bilanz Category:** {resolution_data['bilanz_category']}")
+                    st.write(f"**Contributes:** {format_currency(resolution_data['contributes_amount'])}")
+            else:
+                st.error(f"Failed to get account resolution: {resolution_result['error']}")
+    
+    # Display raw structured Bilanz data (optional)
+    with st.expander("📊 Raw Structured Bilanz Data"):
+        st.json(structured_data)
+
+def show_classic_bilanz(period_end_str: str = None):
+    """Display the classic (original) Bilanz view"""
+    
+    # Get full Bilanz
+    bilanz_result = api.get_bilanz(period_end_str)
+    
+    if not bilanz_result["success"]:
+        st.error(f"Failed to fetch Bilanz: {bilanz_result['error']}")
+        return
+    
+    bilanz_data = bilanz_result["data"]
+    
+    # Display Bilanz in two columns
+    st.write("**🏛️ Classic Balance Sheet Structure**")
+    
+    col1, col2 = st.columns(2)
+    
+    # Aktiva (Assets) side
+    with col1:
+        st.markdown("### 📈 AKTIVA (Assets)")
+        
+        aktiva_positions = bilanz_data["aktiva"]["positions"]
+        for category, accounts in aktiva_positions.items():
+            st.markdown(f"**{category}**")
+            
+            category_total = 0.0
+            for account in accounts:
+                balance = account["balance"]
+                category_total += balance
+                st.write(f"  • {account['account_name']} ({account['account_number']}): {format_currency(balance)}")
+            
+            st.write(f"  **{category} Total: {format_currency(category_total)}**")
+            st.markdown("---")
+        
+        # Total Aktiva
+        st.markdown(f"### **TOTAL AKTIVA: {format_currency(bilanz_data['aktiva']['total'])}**")
+    
+    # Passiva (Liabilities + Equity) side
+    with col2:
+        st.markdown("### 📉 PASSIVA (Liabilities + Equity)")
+        
+        passiva_positions = bilanz_data["passiva"]["positions"]
+        for category, accounts in passiva_positions.items():
+            st.markdown(f"**{category}**")
+            
+            category_total = 0.0
+            for account in accounts:
+                balance = account["balance"]
+                category_total += balance
+                st.write(f"  • {account['account_name']} ({account['account_number']}): {format_currency(balance)}")
+            
+            st.write(f"  **{category} Total: {format_currency(category_total)}**")
+            st.markdown("---")
+        
+        # Total Passiva
+        st.markdown(f"### **TOTAL PASSIVA: {format_currency(bilanz_data['passiva']['total'])}**")
+    
+    # Display raw Bilanz data (optional)
+    with st.expander("📊 Raw Classic Bilanz Data"):
         st.json(bilanz_data)
 
 if __name__ == "__main__":

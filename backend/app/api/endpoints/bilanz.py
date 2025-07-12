@@ -18,6 +18,42 @@ logger = logging.getLogger(__name__)
 
 router = APIRouter(prefix="/bilanz", tags=["bilanz"])
 
+@router.get("/structured", summary="Get Structured Bilanz with Categories")
+def get_structured_bilanz(
+    period_end: Optional[str] = Query(None, description="Period end date (YYYY-MM-DD format)"),
+    account_service = Depends(get_account_service)
+):
+    """
+    Generate hierarchical Bilanz with categories and subcategories
+    
+    Returns a structured Balance Sheet with:
+    - Aktiva: Anlagevermögen, Umlaufvermögen with subcategories
+    - Passiva: Eigenkapital, Fremdkapital with subcategories
+    - Account groupings by category
+    - Category and subcategory totals
+    """
+    try:
+        bilanz_service = get_bilanz_service(account_service)
+        
+        # Parse period_end if provided
+        period_end_dt = None
+        if period_end:
+            try:
+                period_end_dt = datetime.fromisoformat(period_end)
+            except ValueError:
+                raise HTTPException(status_code=400, detail="Invalid date format. Use YYYY-MM-DD")
+        
+        # Generate structured bilanz
+        structured_bilanz = bilanz_service.generate_structured_bilanz(period_end_dt)
+        
+        logger.info(f"Generated structured Bilanz with {len(structured_bilanz.get('aktiva', {}).get('structure', {}))} aktiva categories")
+        
+        return structured_bilanz
+        
+    except Exception as e:
+        logger.error(f"Error generating structured Bilanz: {e}")
+        raise HTTPException(status_code=500, detail=f"Error generating structured Bilanz: {str(e)}")
+
 @router.get("/", response_model=BilanzResponse)
 def get_bilanz(
     period_end: Optional[str] = Query(None, description="Period end date (YYYY-MM-DD format)"),

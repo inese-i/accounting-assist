@@ -13,6 +13,7 @@ Future extensions can include other standards like:
 from typing import Dict, List
 from enum import Enum
 from .account import AccountType
+from .account_categories import AccountCategory
 
 
 class AccountingStandard(str, Enum):
@@ -29,68 +30,68 @@ STANDARD_GERMAN_ACCOUNTS: Dict[str, Dict] = {
     # ===== AKTIVKONTEN (ASSETS) 0000-2999 =====
     
     # Anlagevermögen (Fixed Assets) 0000-0999
-    "0100": {"name": "Geschäfts- oder Firmenwert", "type": AccountType.AKTIVKONTO, "category": "Immaterielle Vermögensgegenstände"},
-    "0120": {"name": "Gewerbliche Schutzrechte und ähnliche Rechte", "type": AccountType.AKTIVKONTO, "category": "Immaterielle Vermögensgegenstände"},
-    "0140": {"name": "Software", "type": AccountType.AKTIVKONTO, "category": "Immaterielle Vermögensgegenstände"},
-    "0200": {"name": "Grundstücke und Bauten", "type": AccountType.AKTIVKONTO, "category": "Sachanlagen"},
-    "0300": {"name": "Technische Anlagen und Maschinen", "type": AccountType.AKTIVKONTO, "category": "Sachanlagen"},
-    "0400": {"name": "Andere Anlagen, Betriebs- und Geschäftsausstattung", "type": AccountType.AKTIVKONTO, "category": "Sachanlagen"},
-    "0410": {"name": "Büroausstattung", "type": AccountType.AKTIVKONTO, "category": "Sachanlagen"},
-    "0420": {"name": "EDV-Anlagen", "type": AccountType.AKTIVKONTO, "category": "Sachanlagen"},
-    "0500": {"name": "Anlagen im Bau", "type": AccountType.AKTIVKONTO, "category": "Sachanlagen"},
-    "0600": {"name": "Anteile an verbundenen Unternehmen", "type": AccountType.AKTIVKONTO, "category": "Finanzanlagen"},
-    "0700": {"name": "Beteiligungen", "type": AccountType.AKTIVKONTO, "category": "Finanzanlagen"},
-    "0800": {"name": "Wertpapiere des Anlagevermögens", "type": AccountType.AKTIVKONTO, "category": "Finanzanlagen"},
+    "0100": {"name": "Geschäfts- oder Firmenwert", "type": AccountType.AKTIVKONTO, "category": AccountCategory.IMMATERIELLE_ANLAGEN},
+    "0120": {"name": "Gewerbliche Schutzrechte und ähnliche Rechte", "type": AccountType.AKTIVKONTO, "category": AccountCategory.IMMATERIELLE_ANLAGEN},
+    "0140": {"name": "Software", "type": AccountType.AKTIVKONTO, "category": AccountCategory.IMMATERIELLE_ANLAGEN},
+    "0200": {"name": "Grundstücke und Bauten", "type": AccountType.AKTIVKONTO, "category": AccountCategory.SACHANLAGEN},
+    "0300": {"name": "Technische Anlagen und Maschinen", "type": AccountType.AKTIVKONTO, "category": AccountCategory.SACHANLAGEN},
+    "0400": {"name": "Andere Anlagen, Betriebs- und Geschäftsausstattung", "type": AccountType.AKTIVKONTO, "category": AccountCategory.SACHANLAGEN},
+    "0410": {"name": "Büroausstattung", "type": AccountType.AKTIVKONTO, "category": AccountCategory.SACHANLAGEN},
+    "0420": {"name": "EDV-Anlagen", "type": AccountType.AKTIVKONTO, "category": AccountCategory.SACHANLAGEN},
+    "0500": {"name": "Anlagen im Bau", "type": AccountType.AKTIVKONTO, "category": AccountCategory.SACHANLAGEN},
+    "0600": {"name": "Anteile an verbundenen Unternehmen", "type": AccountType.AKTIVKONTO, "category": AccountCategory.FINANZANLAGEN},
+    "0700": {"name": "Beteiligungen", "type": AccountType.AKTIVKONTO, "category": AccountCategory.FINANZANLAGEN},
+    "0800": {"name": "Wertpapiere des Anlagevermögens", "type": AccountType.AKTIVKONTO, "category": AccountCategory.FINANZANLAGEN},
     
     # Umlaufvermögen (Current Assets) 1000-2999
-    "1000": {"name": "Kasse", "type": AccountType.AKTIVKONTO, "category": "Liquide Mittel"},
-    "1200": {"name": "Bank", "type": AccountType.AKTIVKONTO, "category": "Liquide Mittel"},
-    "1210": {"name": "Postbank", "type": AccountType.AKTIVKONTO, "category": "Liquide Mittel"},
-    "1220": {"name": "Sparkasse", "type": AccountType.AKTIVKONTO, "category": "Liquide Mittel"},
-    "1230": {"name": "Fremdwährungskonten", "type": AccountType.AKTIVKONTO, "category": "Liquide Mittel"},
-    "1400": {"name": "Forderungen aus Lieferungen und Leistungen", "type": AccountType.AKTIVKONTO, "category": "Forderungen"},
-    "1410": {"name": "Forderungen gegen verbundene Unternehmen", "type": AccountType.AKTIVKONTO, "category": "Forderungen"},
-    "1420": {"name": "Zweifelhafte Forderungen", "type": AccountType.AKTIVKONTO, "category": "Forderungen"},
-    "1500": {"name": "Sonstige Vermögensgegenstände", "type": AccountType.AKTIVKONTO, "category": "Sonstige Forderungen"},
-    "1570": {"name": "Geleistete Anzahlungen", "type": AccountType.AKTIVKONTO, "category": "Sonstige Forderungen"},
-    "1580": {"name": "Vorsteuer", "type": AccountType.AKTIVKONTO, "category": "Steuerliche Forderungen"},
-    "1600": {"name": "Roh-, Hilfs- und Betriebsstoffe", "type": AccountType.AKTIVKONTO, "category": "Vorräte"},
-    "1700": {"name": "Unfertige Erzeugnisse", "type": AccountType.AKTIVKONTO, "category": "Vorräte"},
-    "1800": {"name": "Fertige Erzeugnisse", "type": AccountType.AKTIVKONTO, "category": "Vorräte"},
-    "1900": {"name": "Waren", "type": AccountType.AKTIVKONTO, "category": "Vorräte"},
-    "2000": {"name": "Wertpapiere des Umlaufvermögens", "type": AccountType.AKTIVKONTO, "category": "Wertpapiere"},
-    "2100": {"name": "Aktive Rechnungsabgrenzungsposten", "type": AccountType.AKTIVKONTO, "category": "Rechnungsabgrenzung"},
+    "1000": {"name": "Kasse", "type": AccountType.AKTIVKONTO, "category": AccountCategory.LIQUIDE_MITTEL},
+    "1200": {"name": "Bank", "type": AccountType.AKTIVKONTO, "category": AccountCategory.LIQUIDE_MITTEL},
+    "1210": {"name": "Postbank", "type": AccountType.AKTIVKONTO, "category": AccountCategory.LIQUIDE_MITTEL},
+    "1220": {"name": "Sparkasse", "type": AccountType.AKTIVKONTO, "category": AccountCategory.LIQUIDE_MITTEL},
+    "1230": {"name": "Fremdwährungskonten", "type": AccountType.AKTIVKONTO, "category": AccountCategory.LIQUIDE_MITTEL},
+    "1400": {"name": "Forderungen aus Lieferungen und Leistungen", "type": AccountType.AKTIVKONTO, "category": AccountCategory.FORDERUNGEN},
+    "1410": {"name": "Forderungen gegen verbundene Unternehmen", "type": AccountType.AKTIVKONTO, "category": AccountCategory.FORDERUNGEN},
+    "1420": {"name": "Zweifelhafte Forderungen", "type": AccountType.AKTIVKONTO, "category": AccountCategory.FORDERUNGEN},
+    "1500": {"name": "Sonstige Vermögensgegenstände", "type": AccountType.AKTIVKONTO, "category": AccountCategory.FORDERUNGEN},
+    "1570": {"name": "Geleistete Anzahlungen", "type": AccountType.AKTIVKONTO, "category": AccountCategory.FORDERUNGEN},
+    "1580": {"name": "Vorsteuer", "type": AccountType.AKTIVKONTO, "category": AccountCategory.FORDERUNGEN},
+    "1600": {"name": "Roh-, Hilfs- und Betriebsstoffe", "type": AccountType.AKTIVKONTO, "category": AccountCategory.VORRAETE},
+    "1700": {"name": "Unfertige Erzeugnisse", "type": AccountType.AKTIVKONTO, "category": AccountCategory.VORRAETE},
+    "1800": {"name": "Fertige Erzeugnisse", "type": AccountType.AKTIVKONTO, "category": AccountCategory.VORRAETE},
+    "1900": {"name": "Waren", "type": AccountType.AKTIVKONTO, "category": AccountCategory.VORRAETE},
+    "2000": {"name": "Wertpapiere des Umlaufvermögens", "type": AccountType.AKTIVKONTO, "category": AccountCategory.LIQUIDE_MITTEL},
+    "2100": {"name": "Aktive Rechnungsabgrenzungsposten", "type": AccountType.AKTIVKONTO, "category": AccountCategory.FORDERUNGEN},
     
     # ===== PASSIVKONTEN (LIABILITIES & EQUITY) 3000-3999 =====
     
     # Eigenkapital (Equity) 3000-3399
-    "3000": {"name": "Gezeichnetes Kapital", "type": AccountType.PASSIVKONTO, "category": "Eigenkapital"},
-    "3100": {"name": "Kapitalrücklagen", "type": AccountType.PASSIVKONTO, "category": "Eigenkapital"},
-    "3200": {"name": "Gewinnrücklagen", "type": AccountType.PASSIVKONTO, "category": "Eigenkapital"},
-    "3210": {"name": "Gesetzliche Rücklage", "type": AccountType.PASSIVKONTO, "category": "Eigenkapital"},
-    "3220": {"name": "Freie Rücklagen", "type": AccountType.PASSIVKONTO, "category": "Eigenkapital"},
-    "3300": {"name": "Gewinnvortrag", "type": AccountType.PASSIVKONTO, "category": "Eigenkapital"},
-    "3310": {"name": "Verlustvortrag", "type": AccountType.PASSIVKONTO, "category": "Eigenkapital"},
-    "3320": {"name": "Jahresüberschuss", "type": AccountType.PASSIVKONTO, "category": "Eigenkapital"},
-    "3330": {"name": "Jahresfehlbetrag", "type": AccountType.PASSIVKONTO, "category": "Eigenkapital"},
+    "3000": {"name": "Gezeichnetes Kapital", "type": AccountType.PASSIVKONTO, "category": AccountCategory.GEZEICHNETES_KAPITAL},
+    "3100": {"name": "Kapitalrücklagen", "type": AccountType.PASSIVKONTO, "category": AccountCategory.KAPITALRUECKLAGEN},
+    "3200": {"name": "Gewinnrücklagen", "type": AccountType.PASSIVKONTO, "category": AccountCategory.GEWINNRUECKLAGEN},
+    "3210": {"name": "Gesetzliche Rücklage", "type": AccountType.PASSIVKONTO, "category": AccountCategory.GEWINNRUECKLAGEN},
+    "3220": {"name": "Freie Rücklagen", "type": AccountType.PASSIVKONTO, "category": AccountCategory.GEWINNRUECKLAGEN},
+    "3300": {"name": "Gewinnvortrag", "type": AccountType.PASSIVKONTO, "category": AccountCategory.GEWINNRUECKLAGEN},
+    "3310": {"name": "Verlustvortrag", "type": AccountType.PASSIVKONTO, "category": AccountCategory.GEWINNRUECKLAGEN},
+    "3320": {"name": "Jahresüberschuss", "type": AccountType.PASSIVKONTO, "category": AccountCategory.GEWINNRUECKLAGEN},
+    "3330": {"name": "Jahresfehlbetrag", "type": AccountType.PASSIVKONTO, "category": AccountCategory.GEWINNRUECKLAGEN},
     
     # Rückstellungen (Provisions) 3400-3699
-    "3400": {"name": "Rückstellungen für Pensionen", "type": AccountType.PASSIVKONTO, "category": "Rückstellungen"},
-    "3410": {"name": "Steuerrückstellungen", "type": AccountType.PASSIVKONTO, "category": "Rückstellungen"},
-    "3420": {"name": "Sonstige Rückstellungen", "type": AccountType.PASSIVKONTO, "category": "Rückstellungen"},
+    "3400": {"name": "Rückstellungen für Pensionen", "type": AccountType.PASSIVKONTO, "category": AccountCategory.RUECKSTELLUNGEN},
+    "3410": {"name": "Steuerrückstellungen", "type": AccountType.PASSIVKONTO, "category": AccountCategory.RUECKSTELLUNGEN},
+    "3420": {"name": "Sonstige Rückstellungen", "type": AccountType.PASSIVKONTO, "category": AccountCategory.RUECKSTELLUNGEN},
     
     # Verbindlichkeiten (Liabilities) 3700-3999
-    "3700": {"name": "Verbindlichkeiten aus Lieferungen und Leistungen", "type": AccountType.PASSIVKONTO, "category": "Verbindlichkeiten"},
-    "3710": {"name": "Verbindlichkeiten gegen verbundene Unternehmen", "type": AccountType.PASSIVKONTO, "category": "Verbindlichkeiten"},
-    "3720": {"name": "Wechselverbindlichkeiten", "type": AccountType.PASSIVKONTO, "category": "Verbindlichkeiten"},
-    "3750": {"name": "Erhaltene Anzahlungen", "type": AccountType.PASSIVKONTO, "category": "Verbindlichkeiten"},
-    "3760": {"name": "Sonstige Verbindlichkeiten", "type": AccountType.PASSIVKONTO, "category": "Verbindlichkeiten"},
-    "3800": {"name": "Verbindlichkeiten gegenüber Kreditinstituten", "type": AccountType.PASSIVKONTO, "category": "Verbindlichkeiten"},
-    "3850": {"name": "Darlehen", "type": AccountType.PASSIVKONTO, "category": "Verbindlichkeiten"},
-    "3900": {"name": "Umsatzsteuer", "type": AccountType.PASSIVKONTO, "category": "Steuerverbindlichkeiten"},
-    "3910": {"name": "Lohnsteuer", "type": AccountType.PASSIVKONTO, "category": "Steuerverbindlichkeiten"},
-    "3920": {"name": "Sozialversicherung", "type": AccountType.PASSIVKONTO, "category": "Steuerverbindlichkeiten"},
-    "3950": {"name": "Passive Rechnungsabgrenzungsposten", "type": AccountType.PASSIVKONTO, "category": "Rechnungsabgrenzung"},
+    "3700": {"name": "Verbindlichkeiten aus Lieferungen und Leistungen", "type": AccountType.PASSIVKONTO, "category": AccountCategory.VERBINDLICHKEITEN},
+    "3710": {"name": "Verbindlichkeiten gegen verbundene Unternehmen", "type": AccountType.PASSIVKONTO, "category": AccountCategory.VERBINDLICHKEITEN},
+    "3720": {"name": "Wechselverbindlichkeiten", "type": AccountType.PASSIVKONTO, "category": AccountCategory.VERBINDLICHKEITEN},
+    "3750": {"name": "Erhaltene Anzahlungen", "type": AccountType.PASSIVKONTO, "category": AccountCategory.VERBINDLICHKEITEN},
+    "3760": {"name": "Sonstige Verbindlichkeiten", "type": AccountType.PASSIVKONTO, "category": AccountCategory.VERBINDLICHKEITEN},
+    "3800": {"name": "Verbindlichkeiten gegenüber Kreditinstituten", "type": AccountType.PASSIVKONTO, "category": AccountCategory.VERBINDLICHKEITEN},
+    "3850": {"name": "Darlehen", "type": AccountType.PASSIVKONTO, "category": AccountCategory.VERBINDLICHKEITEN},
+    "3900": {"name": "Umsatzsteuer", "type": AccountType.PASSIVKONTO, "category": AccountCategory.VERBINDLICHKEITEN},
+    "3910": {"name": "Lohnsteuer", "type": AccountType.PASSIVKONTO, "category": AccountCategory.VERBINDLICHKEITEN},
+    "3920": {"name": "Sozialversicherung", "type": AccountType.PASSIVKONTO, "category": AccountCategory.VERBINDLICHKEITEN},
+    "3950": {"name": "Passive Rechnungsabgrenzungsposten", "type": AccountType.PASSIVKONTO, "category": AccountCategory.VERBINDLICHKEITEN},
     
     # ===== AUFWANDSKONTEN (EXPENSES) 4000-7999 =====
     
@@ -249,6 +250,166 @@ class StandardAccountsManager:
             for number, details in self._accounts.items() 
             if start_number <= number <= end_number
         }
+
+
+# ===== INTEGRATED CATEGORY & STANDARD ACCOUNT FUNCTIONS =====
+
+def get_accounts_by_category(category: AccountCategory) -> Dict[str, Dict]:
+    """Get all standard accounts for a specific category"""
+    return {
+        number: details for number, details in STANDARD_GERMAN_ACCOUNTS.items()
+        if details.get("category") == category
+    }
+
+def get_category_structure_with_accounts() -> Dict:
+    """Get the complete category hierarchy with their standard accounts"""
+    from .account_categories import CATEGORY_HIERARCHY, get_main_categories, get_subcategories
+    
+    structure = {}
+    
+    # Build structure for both aktiva and passiva
+    for section in ["aktiva", "passiva"]:
+        structure[section] = {}
+        main_categories = get_main_categories(section)
+        
+        for main_cat in main_categories:
+            main_info = CATEGORY_HIERARCHY[main_cat]
+            main_accounts = get_accounts_by_category(main_cat)
+            
+            structure[section][main_cat.value] = {
+                "name": main_info["name"],
+                "accounts": main_accounts,
+                "subcategories": {}
+            }
+            
+            # Add subcategories
+            subcategories = get_subcategories(main_cat)
+            for sub_cat in subcategories:
+                sub_info = CATEGORY_HIERARCHY[sub_cat]
+                sub_accounts = get_accounts_by_category(sub_cat)
+                
+                structure[section][main_cat.value]["subcategories"][sub_cat.value] = {
+                    "name": sub_info["name"],
+                    "accounts": sub_accounts
+                }
+    
+    return structure
+
+def get_recommended_accounts_for_category(category: AccountCategory, limit: int = 5) -> List[Dict]:
+    """Get recommended accounts for a specific category"""
+    category_accounts = get_accounts_by_category(category)
+    
+    # Define priority accounts for each category
+    priority_accounts = {
+        AccountCategory.LIQUIDE_MITTEL: ["1000", "1200"],  # Kasse, Bank
+        AccountCategory.FORDERUNGEN: ["1400", "1440"],     # Forderungen aus L&L, Steuererstattungsansprüche
+        AccountCategory.VORRAETE: ["1600", "1620"],        # Handelswaren, Rohstoffe
+        AccountCategory.SACHANLAGEN: ["0200", "0300", "0410"],  # Grundstücke, Maschinen, Büroausstattung
+        AccountCategory.VERBINDLICHKEITEN: ["3700", "3740"],    # Verbindlichkeiten aus L&L, Steuerverbindlichkeiten
+        AccountCategory.GEZEICHNETES_KAPITAL: ["3000"],         # Gezeichnetes Kapital
+        # Add more as needed
+    }
+    
+    recommended = []
+    priority_list = priority_accounts.get(category, [])
+    
+    # Add priority accounts first
+    for account_num in priority_list:
+        if account_num in category_accounts:
+            account_info = category_accounts[account_num].copy()
+            account_info["number"] = account_num
+            account_info["is_recommended"] = True
+            recommended.append(account_info)
+    
+    # Add other accounts up to limit
+    remaining_slots = limit - len(recommended)
+    if remaining_slots > 0:
+        for account_num, account_info in list(category_accounts.items())[:remaining_slots]:
+            if account_num not in priority_list:
+                account_info_copy = account_info.copy()
+                account_info_copy["number"] = account_num
+                account_info_copy["is_recommended"] = False
+                recommended.append(account_info_copy)
+    
+    return recommended
+
+def create_account_from_standard(account_number: str, initial_balance: float = 0.0) -> Dict:
+    """Create account data from standard account with automatic category assignment"""
+    standard_account = get_standard_account(account_number)
+    if not standard_account:
+        raise ValueError(f"Standard account {account_number} not found")
+    
+    return {
+        "number": account_number,
+        "name": standard_account["name"],
+        "account_type": standard_account["type"],
+        "category": standard_account.get("category"),
+        "balance": initial_balance,
+        "is_active": True,
+        "is_standard_account": True
+    }
+
+def validate_account_category_consistency(account_number: str, provided_category: AccountCategory = None) -> bool:
+    """Validate if the account number is consistent with its category"""
+    from .account_categories import get_account_category
+    
+    # Get category from account number ranges
+    derived_category = get_account_category(account_number)
+    
+    # Get category from standard account definition
+    standard_account = get_standard_account(account_number)
+    standard_category = standard_account.get("category") if standard_account else None
+    
+    # Check consistency
+    if provided_category:
+        return provided_category in [derived_category, standard_category]
+    
+    both_exist = derived_category is not None and standard_category is not None
+    return derived_category == standard_category if both_exist else True
+
+def get_category_summary() -> Dict:
+    """Get summary of all categories with account counts"""
+    from .account_categories import CATEGORY_HIERARCHY
+    
+    summary = {}
+    for category, info in CATEGORY_HIERARCHY.items():
+        accounts = get_accounts_by_category(category)
+        summary[category.value] = {
+            "name": info["name"],
+            "section": info["bilanz_section"],
+            "parent": info["parent"].value if info["parent"] else None,
+            "account_count": len(accounts),
+            "sample_accounts": list(accounts.keys())[:3]  # First 3 as examples
+        }
+    
+    return summary
+
+def get_account_navigation_structure() -> Dict:
+    """Get a navigation-friendly structure for frontend use"""
+    structure = get_category_structure_with_accounts()
+    
+    # Simplify for navigation
+    navigation = {"aktiva": [], "passiva": []}
+    
+    for section in ["aktiva", "passiva"]:
+        for main_cat_key, main_cat_data in structure[section].items():
+            nav_item = {
+                "key": main_cat_key,
+                "name": main_cat_data["name"],
+                "account_count": len(main_cat_data["accounts"]),
+                "subcategories": []
+            }
+            
+            for sub_cat_key, sub_cat_data in main_cat_data["subcategories"].items():
+                nav_item["subcategories"].append({
+                    "key": sub_cat_key,
+                    "name": sub_cat_data["name"],
+                    "account_count": len(sub_cat_data["accounts"])
+                })
+            
+            navigation[section].append(nav_item)
+    
+    return navigation
 
 
 # Global instance for easy access

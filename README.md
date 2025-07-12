@@ -2,6 +2,8 @@
 
 A production-ready FastAPI backend and Streamlit frontend for HGB (Handelsgesetzbuch) accounting, following HGB standards with full Soll/Haben (debit/credit) support.
 
+**Features:** Complete accounting app with accounts, bookings, transactions, Bilanz (balance sheet), standard account catalog, and double-entry validation.
+
 ## Quick Start
 
 ### 1. Install Dependencies

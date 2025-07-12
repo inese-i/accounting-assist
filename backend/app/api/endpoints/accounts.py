@@ -1,5 +1,5 @@
 from fastapi import APIRouter, HTTPException, Depends
-from typing import List
+from typing import List, Dict, Optional
 
 from app.schemas.account import (
     AccountCreate, 
@@ -7,10 +7,27 @@ from app.schemas.account import (
     AccountUpdate, 
     AccountOperation, 
     OperationResponse,
-    AccountEntryResponse
+    AccountEntryResponse,
+    StandardAccountResponse,
+    CategoryAccountsResponse,
+    CategoryRecommendationsResponse,
+    SearchResultResponse,
+    StarterAccountsResponse,
+    StarterAccountResponse
 )
 from app.schemas.transaction import TransactionCreate, TransactionResponse
 from app.services.account_service import AccountService
+from app.models.account_categories import AccountCategory
+from app.models.standard_accounts import (
+    get_standard_account,
+    get_accounts_by_category,
+    get_category_structure_with_accounts,
+    get_recommended_accounts_for_category,
+    create_account_from_standard,
+    get_category_summary,
+    search_accounts as search_standard_accounts,
+    get_starter_accounts
+)
 
 router = APIRouter()
 
@@ -48,6 +65,8 @@ def create_account(
             haben_balance=account.haben_balance,
             balance=account.get_balance(),
             parent_account=account.parent_account,
+            category=account.category,
+            category_name=account.get_category_name(),
             is_active=account.is_active,
             created_at=account.created_at,
             soll_entries=[],
@@ -69,6 +88,8 @@ def get_accounts(service: AccountService = Depends(get_account_service)):
             haben_balance=acc.haben_balance,
             balance=acc.get_balance(),
             parent_account=acc.parent_account,
+            category=acc.category,
+            category_name=acc.get_category_name(),
             is_active=acc.is_active,
             created_at=acc.created_at,
             soll_entries=[
@@ -101,6 +122,8 @@ def get_account(
         haben_balance=account.haben_balance,
         balance=account.get_balance(),
         parent_account=account.parent_account,
+        category=account.category,
+        category_name=account.get_category_name(),
         is_active=account.is_active,
         created_at=account.created_at,
         soll_entries=[
@@ -341,12 +364,174 @@ def create_starter_accounts(
     
     return {
         "success": True,
-        "message": f"Successfully created {result['total_created']} starter accounts",
+        "message": f"Successfully created {len(result['created_accounts'])} starter accounts",
         "created_accounts": [
-            {
-                "number": acc.number,
-                "name": acc.name,
-                "type": acc.account_type.value
-            } for acc in result["created_accounts"]
+            AccountResponse(
+                number=acc.number,
+                name=acc.name,
+                account_type=acc.account_type,
+                soll_balance=acc.soll_balance,
+                haben_balance=acc.haben_balance,
+                balance=acc.get_balance(),
+                parent_account=acc.parent_account,
+                category=acc.category,
+                category_name=acc.get_category_name(),
+                is_active=acc.is_active,
+                created_at=acc.created_at,
+                soll_entries=[],
+                haben_entries=[]
+            ) for acc in result["created_accounts"]
         ]
     }
+
+
+# ===== CATEGORY & STANDARD ACCOUNT INTEGRATION ENDPOINTS =====
+
+@router.get("/categories", summary="Get Category Overview")
+def get_categories():
+    """Get overview of all account categories with summary information"""
+    return get_category_summary()
+
+@router.get("/categories/structure", summary="Get Category Structure with Accounts")
+def get_category_structure():
+    """Get complete category hierarchy with associated standard accounts"""
+    return get_category_structure_with_accounts()
+
+@router.get("/categories/{category}/accounts", response_model=CategoryAccountsResponse, summary="Get Accounts by Category")
+def get_accounts_by_category_endpoint(category: str):
+    """Get all standard accounts for a specific category"""
+    try:
+        # Convert string to AccountCategory enum
+        account_category = AccountCategory(category)
+        accounts = get_accounts_by_category(account_category)
+        
+        # Format response
+        formatted_accounts = []
+        for number, details in accounts.items():
+            formatted_accounts.append(StandardAccountResponse(
+                number=number,
+                name=details["name"],
+                type=details["type"],
+                category=details["category"]
+            ))
+        
+        return CategoryAccountsResponse(
+            category=category,
+            category_name=account_category.value.replace("_", " ").title(),
+            accounts=formatted_accounts,
+            total_accounts=len(formatted_accounts)
+        )
+    except ValueError:
+        raise HTTPException(status_code=400, detail=f"Invalid category: {category}")
+
+@router.get("/categories/{category}/recommended", response_model=CategoryRecommendationsResponse, summary="Get Recommended Accounts for Category")
+def get_recommended_accounts_endpoint(category: str, limit: int = 5):
+    """Get recommended accounts for a specific category"""
+    try:
+        account_category = AccountCategory(category)
+        recommended = get_recommended_accounts_for_category(account_category, limit)
+        
+        return CategoryRecommendationsResponse(
+            category=category,
+            category_name=account_category.value.replace("_", " ").title(),
+            recommended_accounts=recommended,
+            total_recommended=len(recommended)
+        )
+    except ValueError:
+        raise HTTPException(status_code=400, detail=f"Invalid category: {category}")
+
+@router.get("/standard/{account_number}", response_model=StandardAccountResponse, summary="Get Standard Account Details")
+def get_standard_account_endpoint(account_number: str):
+    """Get details of a standard account by number"""
+    account = get_standard_account(account_number)
+    if not account:
+        raise HTTPException(status_code=404, detail=f"Standard account {account_number} not found")
+    
+    return StandardAccountResponse(
+        number=account_number,
+        name=account["name"],
+        type=account["type"],
+        category=account.get("category")
+    )
+
+@router.post("/standard/{account_number}/create", response_model=AccountResponse, summary="Create Account from Standard")
+def create_account_from_standard_endpoint(
+    account_number: str, 
+    initial_balance: float = 0.0,
+    service: AccountService = Depends(get_account_service)
+):
+    """Create a new account based on a standard account template"""
+    try:
+        # Get standard account details
+        standard_account = get_standard_account(account_number)
+        if not standard_account:
+            raise HTTPException(status_code=404, detail=f"Standard account {account_number} not found")
+        
+        # Create account data from standard
+        account_data = create_account_from_standard(account_number, initial_balance)
+        
+        # Use the existing create_account method
+        from app.schemas.account import AccountCreate
+        create_request = AccountCreate(
+            number=account_data["number"],
+            name=account_data["name"],
+            account_type=account_data["account_type"],
+            parent_account=account_data.get("parent_account"),
+            initial_balance=initial_balance
+        )
+        
+        account = service.create_account(create_request)
+        return AccountResponse(
+            number=account.number,
+            name=account.name,
+            account_type=account.account_type,
+            soll_balance=account.soll_balance,
+            haben_balance=account.haben_balance,
+            balance=account.get_balance(),
+            parent_account=account.parent_account,
+            category=account.category,
+            category_name=account.get_category_name(),
+            is_active=account.is_active,
+            created_at=account.created_at,
+            soll_entries=[],
+            haben_entries=[]
+        )
+    except ValueError as e:
+        raise HTTPException(status_code=400, detail=str(e))
+
+@router.get("/standard/search", response_model=SearchResultResponse, summary="Search Standard Accounts")
+def search_standard_accounts_endpoint(query: str):
+    """Search standard accounts by number, name, or category"""
+    if not query or len(query.strip()) < 2:
+        raise HTTPException(status_code=400, detail="Query must be at least 2 characters long")
+    
+    results = search_standard_accounts(query.strip())
+    
+    return SearchResultResponse(
+        query=query,
+        results=results,
+        total_results=len(results)
+    )
+
+@router.get("/standard/starter", response_model=StarterAccountsResponse, summary="Get Starter Account Recommendations")
+def get_starter_accounts_endpoint():
+    """Get recommended starter accounts for new businesses"""
+    starter_numbers = get_starter_accounts()
+    starter_accounts = []
+    
+    for number in starter_numbers:
+        account = get_standard_account(number)
+        if account:
+            starter_accounts.append(StarterAccountResponse(
+                number=number,
+                name=account["name"],
+                type=account["type"],
+                category=account.get("category"),
+                description=f"Essential account for {account['name'].lower()}"
+            ))
+    
+    return StarterAccountsResponse(
+        starter_accounts=starter_accounts,
+        total_accounts=len(starter_accounts),
+        description="Recommended accounts for new business setup"
+    )

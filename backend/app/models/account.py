@@ -1,6 +1,7 @@
 from enum import Enum
 from typing import Optional, List
 from datetime import datetime
+from .account_categories import AccountCategory, get_account_category
 
 # German Account Types - 4 fundamental types in HGB accounting
 class AccountType(str, Enum):
@@ -26,6 +27,7 @@ class Account:
         soll_balance: float = 0.0,
         haben_balance: float = 0.0,
         parent_account: Optional[str] = None,
+        category: Optional[AccountCategory] = None,
         is_active: bool = True,
         created_at: Optional[datetime] = None
     ):
@@ -35,6 +37,7 @@ class Account:
         self.soll_balance = soll_balance
         self.haben_balance = haben_balance
         self.parent_account = parent_account
+        self.category = category or get_account_category(number)
         self.is_active = is_active
         self.created_at = created_at or datetime.now()
         self.soll_entries: List[AccountEntry] = []
@@ -71,3 +74,20 @@ class Account:
         else:
             # Fallback (should not occur with the 4 defined types)
             return self.soll_balance - self.haben_balance
+
+    def get_category_info(self) -> dict:
+        """Get category hierarchy information for this account."""
+        from .account_categories import get_category_hierarchy
+        if self.category:
+            return get_category_hierarchy(self.category)
+        return {}
+
+    def get_category_name(self) -> Optional[str]:
+        """Get the display name of the account's category."""
+        category_info = self.get_category_info()
+        return category_info.get("name")
+
+    def is_in_bilanz_section(self, section: str) -> bool:
+        """Check if account belongs to a specific Bilanz section (aktiva/passiva)."""
+        category_info = self.get_category_info()
+        return category_info.get("bilanz_section") == section

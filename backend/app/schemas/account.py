@@ -1,7 +1,8 @@
 from pydantic import BaseModel, Field, field_validator
-from typing import Optional, List
+from typing import Optional, List, Dict, Any
 from datetime import datetime
 from app.models.account import AccountType
+from app.models.account_categories import AccountCategory
 
 # Schema for creating new account
 class AccountCreate(BaseModel):
@@ -45,6 +46,8 @@ class AccountResponse(BaseModel):
     haben_balance: float
     balance: float  # Calculated net balance (soll - haben)
     parent_account: Optional[str]
+    category: Optional[AccountCategory]
+    category_name: Optional[str]
     is_active: bool
     created_at: datetime
     soll_entries: List[AccountEntryResponse]
@@ -82,3 +85,51 @@ class OperationResponse(BaseModel):
     amount: float
     new_balance: float
     account_type: AccountType
+
+error_count: int = 0
+
+
+# ===== CATEGORY & STANDARD ACCOUNT SCHEMAS =====
+
+class StandardAccountResponse(BaseModel):
+    number: str
+    name: str
+    type: AccountType
+    category: Optional[AccountCategory]
+    is_standard: bool = True
+
+class CategoryAccountsResponse(BaseModel):
+    category: str
+    category_name: str
+    accounts: List[StandardAccountResponse]
+    total_accounts: int
+
+class RecommendedAccountResponse(BaseModel):
+    number: str
+    name: str
+    type: AccountType
+    category: Optional[AccountCategory]
+    is_recommended: bool
+
+class CategoryRecommendationsResponse(BaseModel):
+    category: str
+    category_name: str
+    recommended_accounts: List[RecommendedAccountResponse]
+    total_recommended: int
+
+class SearchResultResponse(BaseModel):
+    query: str
+    results: List[Dict[str, Any]]
+    total_results: int
+
+class StarterAccountResponse(BaseModel):
+    number: str
+    name: str
+    type: AccountType
+    category: Optional[AccountCategory]
+    description: str
+
+class StarterAccountsResponse(BaseModel):
+    starter_accounts: List[StarterAccountResponse]
+    total_accounts: int
+    description: str

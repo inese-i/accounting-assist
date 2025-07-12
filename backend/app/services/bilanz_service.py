@@ -4,6 +4,12 @@ import logging
 
 from ..models.bilanz import Bilanz
 from ..models.account import Account
+from ..models.account_categories import (
+    AccountCategory, 
+    CATEGORY_HIERARCHY, 
+    get_main_categories,
+    get_subcategories
+)
 
 class BilanzService:
     """Service for managing Bilanz (Balance Sheet) operations"""
@@ -81,6 +87,102 @@ class BilanzService:
             "bilanz_category": category,
             "contributes_amount": contributes_amount
         }
+    
+    def generate_structured_bilanz(self, period_end: Optional[datetime] = None) -> Dict:
+        """Generate Bilanz with hierarchical category structure"""
+        try:
+            # Get all accounts
+            accounts_result = self.account_service.get_all_accounts()
+            if not accounts_result["success"]:
+                raise Exception(f"Failed to get accounts: {accounts_result['error']}")
+            
+            accounts = accounts_result["data"]
+            
+            self.logger.info(f"Generating structured Bilanz with {len(accounts)} accounts")
+            
+            # Group accounts by category
+            categorized_accounts = {}
+            for account_data in accounts:
+                if account_data["account_type"] in ["aktivkonto", "passivkonto"]:
+                    category = account_data.get("category")
+                    if category:
+                        if category not in categorized_accounts:
+                            categorized_accounts[category] = []
+                        categorized_accounts[category].append(account_data)
+            
+            # Build hierarchical structure
+            aktiva_structure = self._build_category_structure("aktiva", categorized_accounts)
+            passiva_structure = self._build_category_structure("passiva", categorized_accounts)
+            
+            # Calculate totals
+            aktiva_total = sum(
+                acc["balance"] for acc in accounts 
+                if acc["account_type"] == "aktivkonto"
+            )
+            passiva_total = sum(
+                acc["balance"] for acc in accounts 
+                if acc["account_type"] == "passivkonto"
+            )
+            
+            result = {
+                "aktiva": {
+                    "structure": aktiva_structure,
+                    "total": aktiva_total
+                },
+                "passiva": {
+                    "structure": passiva_structure, 
+                    "total": passiva_total
+                },
+                "is_balanced": abs(aktiva_total - passiva_total) < 0.01,
+                "difference": aktiva_total - passiva_total,
+                "period_end": period_end.isoformat() if period_end else datetime.now().isoformat()
+            }
+            
+            self.logger.info(f"Generated structured Bilanz: Aktiva={aktiva_total}, Passiva={passiva_total}")
+            return result
+            
+        except Exception as e:
+            self.logger.error(f"Error generating structured Bilanz: {e}")
+            raise
+    
+    def _build_category_structure(self, bilanz_section: str, categorized_accounts: Dict) -> Dict:
+        """Build hierarchical category structure for Bilanz section"""
+        structure = {}
+        
+        # Get main categories for this section
+        main_categories = get_main_categories(bilanz_section)
+        
+        for main_cat in main_categories:
+            main_info = CATEGORY_HIERARCHY[main_cat]
+            main_cat_key = main_cat.value
+            
+            # Initialize main category
+            structure[main_cat_key] = {
+                "name": main_info["name"],
+                "subcategories": {},
+                "accounts": categorized_accounts.get(main_cat_key, []),
+                "total": sum(acc["balance"] for acc in categorized_accounts.get(main_cat_key, []))
+            }
+            
+            # Add subcategories
+            subcategories = get_subcategories(main_cat)
+            for sub_cat in subcategories:
+                sub_info = CATEGORY_HIERARCHY[sub_cat]
+                sub_cat_key = sub_cat.value
+                
+                sub_accounts = categorized_accounts.get(sub_cat_key, [])
+                sub_total = sum(acc["balance"] for acc in sub_accounts)
+                
+                structure[main_cat_key]["subcategories"][sub_cat_key] = {
+                    "name": sub_info["name"],
+                    "accounts": sub_accounts,
+                    "total": sub_total
+                }
+                
+                # Add subcategory total to main category
+                structure[main_cat_key]["total"] += sub_total
+        
+        return structure
 
 # Dependency function for use in endpoints
 def get_bilanz_service(account_service) -> BilanzService:
