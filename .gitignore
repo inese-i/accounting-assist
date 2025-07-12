@@ -1,0 +1,10 @@
+/venv
+.env
+temp.pdf
+temp_*.pdf
+*.db
+__pycache__/
+*.pyc
+*.pyo
+.streamlit/
+chroma_db/
