@@ -60,7 +60,7 @@ The UI will be available at: **http://localhost:8501**
 - `GET /api/v1/bilanz/validate` - Validate Bilanz balance
 - `GET /api/v1/bilanz/account/{account_number}/resolution` - Account Bilanz contribution
 
-## Account Types (HGB Standard)
+## Account Types 
 
 | Type | German Term | Category | Account Numbers | Normal Side |
 |------|-------------|----------|----------------|-------------|
