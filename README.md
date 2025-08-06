@@ -228,23 +228,6 @@ hgb-accountant/
 └── README.md                     # This file
 ```
 
-## Architecture
-
-This project follows **production-ready FastAPI best practices** with **HGB accounting standards**:
-
-- **HGB Compliance**: Full implementation of accounting principles (Soll/Haben, Bestandskonten/Erfolgskonten)
-- **Standard Account Catalog**: Complete account numbering system with search and suggestions
-- **Double-Entry Bookkeeping**: Automatic validation of "Soll an Haben" transactions
-- **Bilanz Integration**: Real-time balance sheet generation and validation
-- **Separation of Concerns**: Clear layers for API, business logic, and data models
-- **Dependency Injection**: Services are injected into endpoints for testability
-- **Pydantic v2 Validation**: Modern request/response validation with accounting rules
-- **Environment Configuration**: Secure handling of secrets and settings
-- **Comprehensive Testing**: Unit tests for business logic
-- **API Versioning**: Structured endpoints with `/api/v1/` prefix
-- **Documentation**: Auto-generated OpenAPI docs with accounting context
-- **Modern UI**: Streamlit frontend with German accounting interface and educational content
-
 ## Development
 
 ### Running the Application
@@ -261,26 +244,6 @@ cd frontend
 streamlit run streamlit_app.py
 ```
 
-### Alternative Running Methods
-
-**With Uvicorn directly:**
-```bash
-cd backend
-uvicorn app.main:app --reload --host 0.0.0.0 --port 8000
-```
-
-**With Streamlit directly:**
-```bash
-cd frontend
-streamlit run streamlit_app.py --server.port 8501
-```
-
-**For production (with Gunicorn):**
-```bash
-cd backend
-gunicorn app.main:app -w 4 -k uvicorn.workers.UvicornWorker
-```
-
 ### Environment Setup
 
 1. Copy the environment template:
@@ -294,18 +257,3 @@ PROJECT_NAME="API"
 SECRET_KEY="your-secret-key-here"
 ```
 
-### Testing
-
-Run the unit tests:
-```bash
-cd backend
-python -m pytest tests/ -v
-```
-
-### API Documentation
-
-To test the API, visit the interactive documentation:
-- **Swagger UI**: http://localhost:8000/docs
-- **ReDoc**: http://localhost:8000/redoc
-
-The documentation includes accounting context and examples for all endpoints.
