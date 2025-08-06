@@ -1,4 +1,4 @@
-# Accounting System 
+# Accounting Asisst in Dev
 
 A FastAPI backend and Streamlit frontend for accounting, following HGB standards with full Soll/Haben (debit/credit) support.
 
