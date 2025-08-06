@@ -1,13 +1,13 @@
-# Accounting System (HGB)
+# Accounting System 
 
-A production-ready FastAPI backend and Streamlit frontend for HGB (Handelsgesetzbuch) accounting, following HGB standards with full Soll/Haben (debit/credit) support.
+A FastAPI backend and Streamlit frontend for accounting, following HGB standards with full Soll/Haben (debit/credit) support.
 
 **Features:** Complete accounting app with accounts, bookings, transactions, Bilanz (balance sheet), standard account catalog, and double-entry validation.
 
 ## Quick Start
 
 ### 1. Install Dependencies
-```b- Modern UI: Streamlit frontend with accounting interface and educational contentsh
+```Streamlit frontend with accounting interface and educational contentsh
 pip install -r requirements.txt
 ```
 
